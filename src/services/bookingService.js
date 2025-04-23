@@ -5,6 +5,8 @@ const { ServerConfig } = require('../config');
 const AppError = require('../utils/error/appError');
 const { StatusCodes } = require('http-status-codes');
 const bookingRepository=new BookingRepository();
+const {ENUMS}=require('../utils/common');
+const {BOOKED,CANCELLED,INITIATED,PENDING}=ENUMS.BOOKING_STATUS;
 
 const createBooking = async (data) => {
     const transaction=await db.sequelize.transaction();
@@ -33,6 +35,38 @@ const createBooking = async (data) => {
     }
 }
 
+const makePayment=async(data)=>{
+    const transaction=await db.sequelize.transaction();
+    try{
+        // console.log("inside make payment booking service");
+        const bookingDetails=await bookingRepository.get(data.bookingId,transaction);
+        if(bookingDetails.status==CANCELLED){
+            throw new AppError('The booking has expired', StatusCodes.BAD_REQUEST);
+        }
+        // console.log("data on service",data);
+        const bookingTime=new Date(bookingDetails.createdAt);
+        const currentTime=new Date();
+        if(currentTime-bookingTime > 300000){
+            const response=await bookingRepository.update(data.bookingId,{status: CANCELLED},transaction);
+            throw new AppError('The booking has expired', StatusCodes.BAD_REQUEST);
+        }
+        if(bookingDetails.totalCost!=data.totalCost){
+            throw new AppError('The amount of the payment entered does not match', StatusCodes.BAD_REQUEST);
+        }
+
+        if(bookingDetails.userId!=data.userId){
+            throw new AppError('The user corresponding to the booking does not match', StatusCodes.BAD_REQUEST);
+        }
+        // assuming payment is successfully
+        const response=await bookingRepository.update(data.bookingId,{status: BOOKED},transaction);
+        await transaction.commit();
+    }catch(error){
+        await transaction.rollback();
+        throw error;
+    }
+}
+
 module.exports = {
-    createBooking
+    createBooking,
+    makePayment
 }
