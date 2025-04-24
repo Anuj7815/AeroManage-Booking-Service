@@ -1,9 +1,11 @@
-# AeroManage Booking Service
-
--> This Repository serves as the service of the AeroManage-Airline Booking System project.  
--> It has the functionality of Booking flight tickets, Make payment, Cancel the tickets with the window opens for very long time.
--> Implemented Pessimistic locks to handle concurrent Booking of tickets.
--> Idempotent Api concept is implemented so that same payment cannot occur twice.
+✈️ AeroManage Booking Service
+📦 This repository is part of the AeroManage - Airline Booking System project.
+🎟️ Provides functionality to:
+   > Book flight tickets
+   > Make payments
+   > Cancel tickets (with an extended cancellation window)
+🔒 Pessimistic locks implemented to handle concurrent bookings and avoid race conditions.
+🧾 Idempotent APIs ensure duplicate payments are prevented even if requests are repeated.
 
 ## Project Structure
 
